@@ -9,7 +9,7 @@ import time
 
 
 param_options = {
-    'group_size':25,
+    'group_size':[10,15,20,25,30,35],
     'TEST_PROPORTION':0.25,
     'model':{
         'layers':[
@@ -24,8 +24,8 @@ param_options = {
         'optimizer':'adagrad',
         'loss':losses.MeanSquaredError(),
         'metrics':['mse'],
-        'epochs':100,
-        'batch_size':32
+        'epochs':1000,
+        'batch_size':1024
     }
 }
 

@@ -26,6 +26,6 @@ def run_model_test(params):
                 shuffle=True,
                 validation_data=(X_test, X_test),
                 batch_size=params['model']['batch_size'],
-                callbacks=[PrintAfterEachEpoch()],
+                # callbacks=[PrintAfterEachEpoch()],
                 verbose=0)
     return model.evaluate(X_test, X_test, verbose=0)[1]
