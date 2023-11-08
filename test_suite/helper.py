@@ -1,4 +1,24 @@
 import numpy as np
+import pandas as pd
+from keras.utils import to_categorical 
+def avg(group, group_size): 
+    group['GroupNumber'] = np.array(range(len(group.index))) // group_size
+    res = group.groupby('GroupNumber').mean()
+    return res
+def load_data(group_size):
+    data = pd.read_hdf("../../initialSingleCellDf-channel-20220916-MW_018-001.h5", key="df")
+    #print all the columns
+    ANTIGENS = ['null', 'E1', 'G4', 'V4', 'T4', 'Q4', 'A2', 'N4']
+    df = data.loc[(data.index.get_level_values('CellType') == 'OT-1') & 
+                       (data.index.get_level_values('Peptide').isin(ANTIGENS))
+                    ]
+    data = data.groupby(['Peptide', 'Time','Replicate']).apply(avg, group_size=group_size)
+    antigen = list(df.index.get_level_values('Peptide'))
+    X = np.array(data.values)
+    y = np.array(list(map(lambda x: ANTIGENS.index(x), antigen)))
+    y = to_categorical(y)
+    return X,y
+
 def save_results_to_file(results):
     with open("results.txt","w") as f:
         for result in results:
