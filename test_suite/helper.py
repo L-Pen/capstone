@@ -9,11 +9,11 @@ def load_data(group_size):
     data = pd.read_hdf("../../initialSingleCellDf-channel-20220916-MW_018-001.h5", key="df")
     #print all the columns
     ANTIGENS = ['null', 'E1', 'G4', 'V4', 'T4', 'Q4', 'A2', 'N4']
-    df = data.loc[(data.index.get_level_values('CellType') == 'OT-1') & 
+    data = data.loc[(data.index.get_level_values('CellType') == 'OT-1') & 
                        (data.index.get_level_values('Peptide').isin(ANTIGENS))
                     ]
     data = data.groupby(['Peptide', 'Time','Replicate']).apply(avg, group_size=group_size)
-    antigen = list(df.index.get_level_values('Peptide'))
+    antigen = list(data.index.get_level_values('Peptide'))
     X = np.array(data.values)
     y = np.array(list(map(lambda x: ANTIGENS.index(x), antigen)))
     y = to_categorical(y)

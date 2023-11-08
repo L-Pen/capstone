@@ -3,3 +3,6 @@ numpy
 torch
 scikit-learn
 tables
+keras
+tensorflow-macos
+tensorflow-metal
