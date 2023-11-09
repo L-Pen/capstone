@@ -22,10 +22,10 @@ def run_model_test(params):
 
     # Train the model and print after each epoch but not verbose
     model.fit(X_train, X_train,
-                epochs=params['model']['epochs'],
+                epochs=params['epochs'],
                 shuffle=True,
                 validation_data=(X_test, X_test),
-                batch_size=params['model']['batch_size'],
+                batch_size=params['batch_size'],
                 # callbacks=[PrintAfterEachEpoch()],
                 verbose=0)
     return model.evaluate(X_test, X_test, verbose=0)[1]

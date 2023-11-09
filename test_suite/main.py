@@ -7,10 +7,11 @@ from model_test import run_model_test
 from tensorflow.keras import layers, losses
 import time
 
-
 param_options = {
-    'group_size':[10,15,20,25,30,35],
+    'group_size':[15,20,25],
     'TEST_PROPORTION':0.25,
+    'epochs':1000,
+    'batch_size':[1024,512,256],
     'model':{
         'layers':[
             layers.InputLayer(input_shape=(26,)),
@@ -24,8 +25,6 @@ param_options = {
         'optimizer':'adagrad',
         'loss':losses.MeanSquaredError(),
         'metrics':['mse'],
-        'epochs':1000,
-        'batch_size':1024
     }
 }
 

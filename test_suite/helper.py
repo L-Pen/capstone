@@ -12,7 +12,7 @@ def load_data(group_size):
     data = data.loc[(data.index.get_level_values('CellType') == 'OT-1') & 
                        (data.index.get_level_values('Peptide').isin(ANTIGENS))
                     ]
-    data = data.groupby(['Peptide', 'Time','Replicate']).apply(avg, group_size=group_size)
+    data = data.groupby(['Peptide', 'Time', 'Replicate', 'Concentration']).apply(avg, group_size=group_size)
     antigen = list(data.index.get_level_values('Peptide'))
     X = np.array(data.values)
     y = np.array(list(map(lambda x: ANTIGENS.index(x), antigen)))
