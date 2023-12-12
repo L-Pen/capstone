@@ -3,28 +3,24 @@ import numpy as np
 import pandas as pd
 from helper import save_results_to_file,generate_params,load_data
 from model_test import run_model_test
-
-from tensorflow.keras import layers, losses
 import time
 
 param_options = {
-    'group_size':[15,20,25],
+    'group_size':[25],
     'TEST_PROPORTION':0.25,
     'epochs':1000,
-    'batch_size':[1024,512,256],
+    'batch_size':[256],
     'model':{
         'layers':[
-            layers.InputLayer(input_shape=(26,)),
-            layers.Dense(13, activation='elu'),
-            layers.Dense(7, activation='relu'),
-            layers.Dense(3, activation='linear', name="Bottleneck"), # The bottleneck. 
-            layers.Dense(7, activation='elu'),
-            layers.Dense(13, activation='relu'),
-            layers.Dense(26, activation='linear'),
+            {'type':'input','shape':(26,)},
+            {'type':'dense','units':32,'activation':'relu'},
+            {'type':'dense','units':16,'activation':'elu'},
+            {'type':'dense','units':3,'activation':'linear','name':'Bottleneck'}, # The bottleneck. 
+            {'type':'dense','units':16,'activation':'elu'},
+            {'type':'dense','units':32,'activation':'relu'},
+            {'type':'dense','units':26,'activation':'linear'},
         ],
-        'optimizer':'adagrad',
-        'loss':losses.MeanSquaredError(),
-        'metrics':['mse'],
+        'output_range':[-1,1]
     }
 }
 
@@ -37,9 +33,15 @@ def run_test(params):
 
 if __name__ == "__main__":
     params = generate_params(param_options)
+    #add id to each param
+    for i in range(len(params)):
+        params[i]['id'] = i
+    #save params to json file
+
+    pd.DataFrame(params).to_json("params.json",orient="records")
     print("cores available:",cpu_count())
     print("number of tests:",len(params))
-    with Pool(processes=6) as pool:
+    with Pool(processes=1) as pool:
         results = pool.map(run_test,params)
     save_results_to_file(results)
  

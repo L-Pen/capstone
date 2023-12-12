@@ -5,7 +5,7 @@ def avg(group, group_size):
     group['GroupNumber'] = np.array(range(len(group.index))) // group_size
     res = group.groupby('GroupNumber').mean()
     return res
-def load_data(group_size):
+def load_data(group_size,output_range):
     data = pd.read_hdf("../../initialSingleCellDf-channel-20220916-MW_018-001.h5", key="df")
     #print all the columns
     ANTIGENS = ['null', 'E1', 'G4', 'V4', 'T4', 'Q4', 'A2', 'N4']
@@ -14,10 +14,12 @@ def load_data(group_size):
                     ]
     data = data.groupby(['Peptide', 'Time', 'Replicate', 'Concentration']).apply(avg, group_size=group_size)
     antigen = list(data.index.get_level_values('Peptide'))
-    X = np.array(data.values)
+    times = list(data.index.get_level_values('Time'))
+    scaling_factor = 1024/(output_range[1]-output_range[0])
+    X = np.array(data.values)/scaling_factor + output_range[0]
     y = np.array(list(map(lambda x: ANTIGENS.index(x), antigen)))
     y = to_categorical(y)
-    return X,y
+    return X,y,times
 
 def save_results_to_file(results):
     with open("results.txt","w") as f:
