@@ -1,3 +1,1 @@
-(0.12629010352479664, {'A': 3})
-(0.3511207833009561, {'A': 2})
-(0.6144518957342642, {'A': 1})
+(0.0021297738421708345, {'group_size': 25, 'TEST_PROPORTION': 0.25, 'epochs': 1000, 'batch_size': 256, 'model': {'layers': [{'type': 'input', 'shape': (26,)}, {'type': 'dense', 'units': 32, 'activation': 'relu'}, {'type': 'dense', 'units': 16, 'activation': 'elu'}, {'type': 'dense', 'units': 3, 'activation': 'linear', 'name': 'Bottleneck'}, {'type': 'dense', 'units': 16, 'activation': 'elu'}, {'type': 'dense', 'units': 32, 'activation': 'relu'}, {'type': 'dense', 'units': 26, 'activation': 'linear'}], 'output_range': [-1, 1]}, 'id': 0}, 54422.96462416649)
