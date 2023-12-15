@@ -31,10 +31,10 @@ def run_model_test(params):
     model_layers = []
     model_layers.append(layers.InputLayer(input_shape=params['num_features']))
     for size in nodes_per_layer:
-        model_layers.append(size, activation='relu')
+        model_layers.append(layers.Dense(size, activation='relu'))
     model_layers.append(layers.Dense(params['bottleneck_size'], activation=params['bottleneck_activation'], name='Bottleneck'))
     for size in nodes_per_layer[::-1]:
-        model_layers.append(size, activation='relu')
+        model_layers.append(layers.Dense(size, activation='relu'))
     model_layers.append(layers.Dense(params['num_features'], activation=params['output_activation']))
     model = Sequential(model_layers)
 
