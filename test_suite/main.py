@@ -6,22 +6,18 @@ from model_test import run_model_test
 import time
 
 param_options = {
-    'group_size':[25],
-    'TEST_PROPORTION':0.25,
+    'group_size':25,
+    'TEST_PROPORTION':0.2,
     'epochs':1000,
-    'batch_size':[256],
-    'model':{
-        'layers':[
-            {'type':'input','shape':(26,)},
-            {'type':'dense','units':32,'activation':'relu'},
-            {'type':'dense','units':16,'activation':'elu'},
-            {'type':'dense','units':3,'activation':'linear','name':'Bottleneck'}, # The bottleneck. 
-            {'type':'dense','units':16,'activation':'elu'},
-            {'type':'dense','units':32,'activation':'relu'},
-            {'type':'dense','units':26,'activation':'linear'},
-        ],
-        'output_range':[-1,1]
-    }
+    'batch_size':256,
+    'output_range':[[-1,1]],
+    'between_layers':[2,3],
+    'first_layer_size':[16,32,64,128],
+    'layer_size_factor':[0.5,0.75],
+    'bottleneck_size':2,
+    'num_features':26,
+    'bottleneck_activation':['linear','tanh'],
+    'output_activation':['linear','tanh'],
 }
 
 def run_test(params):
