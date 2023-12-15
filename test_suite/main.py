@@ -37,6 +37,10 @@ if __name__ == "__main__":
     pd.DataFrame(params).to_json("params.json",orient="records")
     print("cores available:",cpu_count())
     print("number of tests:",len(params))
+    num_processes= 1
+    if cpu_count() > 16:
+        num_processes = 6
+    print("number of processes:",num_processes)
     with Pool(processes=1) as pool:
         results = pool.map(run_test,params)
     save_results_to_file(results)

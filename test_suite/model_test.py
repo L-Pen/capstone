@@ -48,6 +48,6 @@ def run_model_test(params):
                 shuffle=True,
                 validation_data=(X_test, X_test),
                 batch_size=params['batch_size'],
-                callbacks=[PrintAfterEachEpoch(params['model']['output_range']),checkpoint,early_stop],
+                callbacks=[PrintAfterEachEpoch(params['output_range']),checkpoint,early_stop],
                 verbose=0)
     return model.evaluate(X_test, X_test, verbose=0)[1]
