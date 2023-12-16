@@ -7,18 +7,18 @@ import time
 import os
 
 param_options = {
-    'group_size':25,
+    'group_size':[1,10,25,100],
     'TEST_PROPORTION':0.2,
     'epochs':1000,
     'batch_size':256,
     'output_range':[[-1,1]],
-    'between_layers':[2,3],
-    'first_layer_size':[16,32,64,128],
-    'layer_size_factor':[0.5,0.75],
+    'between_layers':[1,2,3,4],
+    'first_layer_size':[64,128,256],
+    'layer_size_factor':[0.33,0.5,0.75],
     'bottleneck_size':2,
     'num_features':26,
-    'bottleneck_activation':['linear','tanh'],
-    'output_activation':['linear','tanh'],
+    'bottleneck_activation':['linear'],
+    'output_activation':['linear'],
 }
 
 def run_test(params):
