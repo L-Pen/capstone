@@ -4,6 +4,7 @@ import pandas as pd
 from helper import save_results_to_file,generate_params,load_data
 from model_test import run_model_test
 import time
+import os
 
 param_options = {
     'group_size':25,
@@ -28,6 +29,14 @@ def run_test(params):
     return (result,params,total_time)
 
 if __name__ == "__main__":
+    if os.path.exists("params.json"):
+        os.remove("params.json")
+    if os.path.exists("results.txt"):
+        os.remove("results.txt")
+    if os.path.exists("checkpoints"):
+        for filename in os.listdir("checkpoints"):
+            os.remove(f"checkpoints/{filename}")
+
     params = generate_params(param_options)
     #add id to each param
     for i in range(len(params)):
