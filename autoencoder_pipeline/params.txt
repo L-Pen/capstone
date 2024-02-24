@@ -1,0 +1,6 @@
+model_inputs: ['CD126', 'CD19', 'CD2', 'CD25', 'CD27', 'CD38', 'CD4', 'CD44', 'CD45', 'CD45RA', 'CD5', 'CD62L', 'CD86', 'CD8a', 'CX3CR1', 'CXCR6', 'FSC-A', 'Granzyme B', 'ICOS', 'IRF8', 'MHC-II', 'OX40', 'PD-L1', 'Proliferation', 'SSC-A', 'TBet']
+group_size: 100
+batch_size: 100
+embedding_size: 2
+autoencoder_hidden_sizes: [250, 200]
+model_path: autoencoder_test.pt
