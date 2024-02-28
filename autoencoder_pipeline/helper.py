@@ -21,7 +21,7 @@ class Autoencoder(nn.Module):
             decoder_layers.append(nn.Linear(layer_sizes[-i-1],layer_sizes[-i-2]))
             decoder_layers.append(nn.ReLU())
 
-        encoder_layers.append(nn.Linear(layer_sizes[-1],embedding_size))
+        encoder_layers.append(nn.Linear(layer_sizes[-1],embedding_size,bias=False))
         decoder_layers.append(nn.Linear(layer_sizes[0],input_size))
         
         self.encoder = nn.Sequential(*encoder_layers)
@@ -40,54 +40,75 @@ class Autoencoder(nn.Module):
     def encode(self,x):
         return self.encoder(x)
 
-def train(model,train_loader,test_loader,reconstruction_weight,strength_weight,strength_index,device,num_epochs=10):
+def train(model,train_loader,test_loader,reconstruction_weight,strength_weight,strength_index,device,num_epochs=10, train_strength=True):
     mse_criterion = nn.MSELoss()
     strength_criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001,weight_decay=1e-5)
     for epoch in range(num_epochs):
         avg_loss = 0
         model.train()
         for data in train_loader:
             readings,classifications = data[0].to(device),data[1]
-            strengths = classifications[:,strength_index].unsqueeze(1).to(device)
+            if train_strength:
+                strengths = classifications[:,strength_index].unsqueeze(1).to(device)
             # ===================forward=====================
             reconstruction,pred_strength = model(readings)
             reconstruction_loss = mse_criterion(reconstruction, readings)
-            strength_loss = strength_criterion(pred_strength,strengths)
+            if train_strength:
+                #get indexes where strength is -1
+                non_labelled_strength_indexes = np.where(classifications[:,strength_index] == -1)[0]
+                #copy over the strength to the pred_strength so that the loss is 0 for the non labelled strength
+                pred_strength[non_labelled_strength_indexes] = strengths[non_labelled_strength_indexes]
+                strength_loss = strength_criterion(pred_strength,strengths)
         
             # ===================backward====================
             optimizer.zero_grad()
-            loss = reconstruction_weight*reconstruction_loss +strength_weight*strength_loss
+            if train_strength:
+                loss = reconstruction_weight*reconstruction_loss +strength_weight*strength_loss
+            else:
+                loss = reconstruction_loss
             loss.backward()
             optimizer.step()
             avg_loss += loss.item()
         #validate
         avg_loss = avg_loss/len(train_loader)
         avg_val_loss = 0
+        avg_strength_loss = 0
+        avg_reconstruction_loss = 0
         model.eval()
         with torch.no_grad():
             for data in test_loader:
                 readings,classifications = data[0].to(device),data[1]
                 # decode classifications[0] to one hot
-                strengths = classifications[:,strength_index].unsqueeze(1).to(device)
+                if train_strength:
+                    strengths = classifications[:,strength_index].unsqueeze(1).to(device)
                 # ===================forward=====================
                 reconstruction,pred_strength = model(readings)
                 reconstruction_loss = mse_criterion(reconstruction, readings)
-                strength_loss = strength_criterion(pred_strength,strengths)
-                
+                if train_strength:
+                    non_labelled_strength_indexes = np.where(classifications[:,strength_index] == -1)[0]
+                    pred_strength[non_labelled_strength_indexes] = strengths[non_labelled_strength_indexes]
+                    strength_loss = strength_criterion(pred_strength,strengths)
+                    avg_strength_loss += strength_loss.item()
+                avg_reconstruction_loss += reconstruction_loss.item()
                 # ===================log========================
-                avg_val_loss +=reconstruction_weight* reconstruction_loss.item()+ strength_weight*strength_loss.item()
+                if train_strength:
+                    avg_val_loss +=reconstruction_weight* reconstruction_loss.item()+ strength_weight*strength_loss.item()
+                else:
+                    avg_val_loss +=reconstruction_loss.item()
         avg_val_loss = avg_val_loss/len(test_loader)
+        avg_reconstruction_loss = avg_reconstruction_loss/len(test_loader)
+        avg_strength_loss = avg_strength_loss/len(test_loader)
 
         # ===================log========================
-        print('epoch [{}/{}], train loss:{:.6f} val loss:{:.6f}'.format(epoch + 1, num_epochs, avg_loss, avg_val_loss))
+        print('epoch [{}/{}], train loss:{:.6f} val loss:{:.6f} val reconstruction loss {:.6f} val strength loss {:.6f}'.format(epoch + 1, num_epochs, avg_loss, avg_val_loss,avg_reconstruction_loss,avg_strength_loss))
 
 def avg(group, group_size): 
     group['GroupNumber'] = np.array(range(len(group.index))) // group_size
     res = group.groupby('GroupNumber').mean()
     return res
 
-def load_data(data,model_inputs,ignore_indexes=['Event'],group_size=10):
+def load_data(data,model_inputs,ignore_indexes=['Event'],group_size=10,transform='scale'):
     index_names = [x for x in data.index.names if x not in ignore_indexes]
     data = data.groupby(index_names).apply(avg, group_size)
 
@@ -96,8 +117,10 @@ def load_data(data,model_inputs,ignore_indexes=['Event'],group_size=10):
     data_labels = data.index.to_numpy()
     data_index_names = np.array(data.index.names)
     data_columns = np.array(data.columns)
-
-    data_np = (data_np-512)/512
+    if transform == 'scale':
+        data_np = (data_np-512)/512
+    elif transform == 'normalize':
+        data_np = (data_np - data_np.mean(axis=0))/data_np.std(axis=0)
 
     #find in the index which column is 'GroupNumber' and remove it from the index and the data
     group_number_index = list(data_index_names).index('GroupNumber')
@@ -205,7 +228,7 @@ def format_data_into_experiment(embeddings,data_labels,data_index_names,strength
             'strengths': strengths_for_label,
             'strengths_std': strengths_for_label_std
         })
-    return output
+    return output, np.delete(data_index_names, time_index)
 
 def save_params(model_inputs,group_size,batch_size,embedding_size,autoencoder_hidden_sizes,model_path):
     with open("params.txt", "w") as file:
