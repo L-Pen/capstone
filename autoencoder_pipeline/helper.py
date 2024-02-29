@@ -22,6 +22,7 @@ class Autoencoder(nn.Module):
             decoder_layers.append(nn.ReLU())
 
         encoder_layers.append(nn.Linear(layer_sizes[-1],embedding_size,bias=False))
+        #add instance norm to the encoder
         decoder_layers.append(nn.Linear(layer_sizes[0],input_size))
         
         self.encoder = nn.Sequential(*encoder_layers)
@@ -171,6 +172,10 @@ def get_embedding(model,test_loader,device):
        return embeddings,labels,markers,strengths
 
 def format_data_into_experiment(embeddings,data_labels,data_index_names,strengths,ignore_columns=[]):
+    #data_labels might be longer than embeddings, so we need to remove the extra rows
+    if len(embeddings) < len(data_labels):
+        data_labels = data_labels[:len(embeddings)]
+        strengths = strengths[:len(embeddings)]
     # create a list of dictionaries for each label
     for ignore_column in ignore_columns:
         ignore_index = list(data_index_names).index(ignore_column)
