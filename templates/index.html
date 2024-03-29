@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <label for="File">Please enter a file:</label>
+    <br>
+    <input type="file" id="file" name="file-input" />
+    <br>
+    <button id="demo" onclick="myFunction()"> Submit!</button>
+</body>
+
+<script>
+    async function myFunction() {
+        const file = document.getElementById('file').files[0];
+        const data = new FormData();
+        data.append('files', file);
+        const res = await fetch('http://localhost:8001/file-input', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: data,
+        })
+        if (res.status !== 200) {
+            console.log(res.statusText);
+        }
+    }
+</script>
+
+</html>
