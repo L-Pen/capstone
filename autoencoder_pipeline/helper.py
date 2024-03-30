@@ -41,6 +41,50 @@ class Autoencoder(nn.Module):
     def encode(self,x):
         return self.encoder(x)
 
+class VariationalAutoencoder(nn.Module):
+    def __init__(self,input_size,layer_sizes,embedding_size):
+        super(VariationalAutoencoder,self).__init__()
+        encoder_layers = [nn.Linear(input_size,layer_sizes[0]),nn.ReLU()]
+        decoder_layers = [nn.Linear(embedding_size,layer_sizes[-1]),nn.ReLU()]
+        # classify_layers = [nn.Linear(embedding_size,20),nn.ReLU(),nn.Linear(20,8)]
+        # regression_layers = [nn.Linear(embedding_size,20),nn.ReLU(),nn.Linear(20,2)]
+        strength_layers = [nn.Linear(embedding_size,20),nn.ReLU(),nn.Linear(20,1)]
+
+
+        for i in range(len(layer_sizes)-1):
+            encoder_layers.append(nn.Linear(layer_sizes[i],layer_sizes[i+1]))
+            encoder_layers.append(nn.ReLU())
+            decoder_layers.append(nn.Linear(layer_sizes[-i-1],layer_sizes[-i-2]))
+            decoder_layers.append(nn.ReLU())
+        
+        decoder_layers.append(nn.Linear(layer_sizes[0],input_size))
+
+        self.encoder = nn.Sequential(*encoder_layers)
+        self.decoder = nn.Sequential(*decoder_layers)
+        # self.classify = nn.Sequential(*classify_layers)
+        # self.regress = nn.Sequential(*regression_layers)
+        self.strength = nn.Sequential(*strength_layers)
+        self.mu = nn.Linear(layer_sizes[-1],embedding_size)
+        self.logvar = nn.Linear(layer_sizes[-1],embedding_size)
+    def get_strength(self,x):
+        x = self.encoder(x)
+        mu = self.mu(x)
+        return self.strength(mu)
+    def forward(self,x):
+        x = self.encoder(x)
+        mu = self.mu(x)
+        strength = self.strength(mu)
+        logvar = self.logvar(x)
+        std = torch.exp(0.5*logvar)
+        eps = torch.randn_like(std)
+        x = mu + eps*std
+        x = self.decoder(x)
+        return x, strength
+    def encode(self,x):
+        x = self.encoder(x)
+        mu = self.mu(x)
+        return mu
+
 def train(model,train_loader,test_loader,reconstruction_weight,strength_weight,strength_index,device,num_epochs=10, train_strength=True):
     mse_criterion = nn.MSELoss()
     strength_criterion = nn.MSELoss()
